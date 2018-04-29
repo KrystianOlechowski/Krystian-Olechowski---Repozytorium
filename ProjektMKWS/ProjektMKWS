@@ -1,0 +1,66 @@
+import cantera as ct
+import numpy as np
+import matplotlib.pyplot as plt
+
+reactants = 'H2:0.7, O2:1.0, N2:3.76'  #przyjalem staly sklad mieszanki paliwowej dla kazdego z trzech warunkow poczatkowych
+T1 = 300
+p1 = 101325   #1 atm
+
+T2 = 300
+p2 = 151987   #1.5 atm
+
+T3 = 400
+p3 = 101325
+
+width = 0.03      # przyjeto taki, poniewaz przy tej wartosci predkosc spalania juz sie nie zmienia
+loglevel = 1      #1 jest najczesciej przyjmowana wartoscia parametru loglevel, a zatem rowniez taka przyjalem
+
+
+#inicjalizacja gazow + przypisanie trzech warunkow poczatkowych
+gas1 = ct.Solution('gri30.xml')
+gas2 = ct.Solution('gri30.xml')     
+gas3 = ct.Solution('gri30.xml')
+
+gas1.TPX = T1, p1, reactants
+gas2.TPX = T2, p2, reactants
+gas3.TPX = T3, p3, reactants
+
+
+#inicjalizacja plomieni dla trzech gazow
+f1 = ct.FreeFlame(gas1, width = width)
+f2 = ct.FreeFlame(gas2, width = width)
+f3 = ct.FreeFlame(gas3, width = width)
+
+#warunki wlotowe
+
+f1.inlet.T = T1
+f1.inlet.X = reactants
+
+f2.inlet.T = T2
+f2.inlet.X = reactants
+
+f3.inlet.T = T3
+f3.inlet.X = reactants
+
+
+#obliczenia
+f1.solve(loglevel = loglevel, auto = True)
+f2.solve(loglevel = loglevel, auto = True)
+f3.solve(loglevel = loglevel, auto = True)
+
+#wyswietlenie wynikow
+f1.show_solution()
+f2.show_solution()
+f3.show_solution()
+
+#zapis wykresu predkosci spalania względem gridu do pliku
+plt.plot(f1.grid, f1.u, 'C1', label = 'T = 300K, p = 1 atm')
+
+plt.plot(f2.grid, f2.u, 'C2', label = 'T = 300K, p = 1.5 atm')
+
+plt.plot(f3.grid, f3.u, 'C3', label = 'T = 400K, p = 1 atm')
+plt.xlabel('Grid')
+plt.ylabel('Flame speed')
+plt.legend()
+
+plt.savefig('Graphs.png')
