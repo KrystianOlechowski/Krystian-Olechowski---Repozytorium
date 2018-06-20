@@ -1,0 +1,204 @@
+from SDToolbox import *
+import cantera as ct
+import numpy as np
+from cantera import *
+import matplotlib.pyplot as plt     
+
+
+P1 = 100000; P1atm = P1/one_atm;
+T1 = 300;
+q = 'H2:0.7, O2:1, N2:3.76'
+mech = 'h2air_highT.cti'
+
+P2 = 150000; P2atm = P2/one_atm;
+T2 = 300;
+
+P3 = 100000; P3atm = P3/one_atm;
+T3 = 400;
+
+ 
+[cj_speed1,R2_1] = CJspeed(P1, T1, q, mech, 0);   
+[cj_speed2,R2_2] = CJspeed(P2, T2, q, mech, 0);  
+[cj_speed3,R2_3] = CJspeed(P3, T3, q, mech, 0);  
+
+gas1 = PostShock_eq(cj_speed1, P1, T1, q, mech)
+gas2 = PostShock_eq(cj_speed2, P2, T2, q, mech)
+gas3 = PostShock_eq(cj_speed3, P3, T3, q, mech)
+Ps1 = gas1.P/one_atm
+Ps2 = gas2.P/one_atm
+Ps3 = gas3.P/one_atm
+
+print ' '
+print 'CJ State'
+gas1()
+gas2()
+gas3()
+Ps1 = gas1.P
+Ps2 = gas2.P
+Ps3 = gas3.P
+
+print ' '
+print 'For ' + q + ' in the first case: P1 = %.2f Pa & T1 = %.2f K using ' % (P1,T1) + mech 
+print 'CJ Speed is %.2f m/s' % cj_speed1
+
+print ' '
+print 'For ' + q + ' in the second case: P1 = %.2f Pa & T1 = %.2f K using ' % (P2,T2) + mech 
+print 'CJ Speed is %.2f m/s' % cj_speed2
+
+print ' '
+print 'For ' + q + ' in the third case: P1 = %.2f Pa & T1 = %.2f K using ' % (P3,T3) + mech 
+print 'CJ Speed is %.2f m/s' % cj_speed3
+
+print ' '
+print 'The CJ State for the first case is %.2f Pa & %.2f K' % (Ps1,gas1.T)
+
+print ' '
+print 'The CJ State for the second case is %.2f Pa & %.2f K' % (Ps2,gas2.T)
+
+
+print ' '
+print 'The CJ State for the third case is %.2f Pa & %.2f K' % (Ps3,gas3.T)
+
+[ae1,af1] = equilSoundSpeeds(gas1)
+[ae2,af2] = equilSoundSpeeds(gas2)
+[ae3,af3] = equilSoundSpeeds(gas3)
+print ' '
+print 'The sound speeds for the first case are: af1 = %.2f m/s & ae1 = %.2f m/s' % (af1,ae1)
+
+print ' '
+print 'The sound speeds for the second case are: af2 = %.2f m/s & ae2 = %.2f m/s' % (af2,ae2)
+
+print ' '
+print 'The sound speeds for the third case are: af3 = %.2f m/s & ae3 = %.2f m/s' % (af3,ae3)
+print 
+print
+
+
+
+T1=300;
+q='H2:1 O2:1 N2:3.76';
+mech = 'h2air_highT.cti'
+
+P1 = 100000
+pressures = np.zeros(10)
+Data = np.zeros(10)
+Datapressure = np.zeros(10)
+Datatemp = np.zeros(10)
+
+for n in range(10):
+    pressures[n] = P1/one_atm
+    [cj_speed,R2] = CJspeed(P1, T1, q, mech, 0);
+    gas = PostShock_eq(cj_speed, P1, T1, q, mech)
+    Data[n] = cj_speed
+    Datapressure[n] = gas.P
+    Datatemp[n] = gas.T
+    P1+=100000
+
+    
+print('%15s    %15s' % ('Pressure [atm]', 'CJ speed [m/s]'))
+for i in range(10):
+    print('%10.1f   %15.1f') % (pressures[i], Data[i])
+
+print 
+
+plt.plot(pressures,Data)
+plt.ylabel('CJ speed [m/s]')
+plt.xlabel('Pressure [atm]')
+plt.ylim(1608, 1613)
+plt.show()
+
+print
+print
+
+print('%15s    %15s    %15s' % ('Pressure [atm]', 'Post Shock pressure [atm]', 'Post Shock temperature [K]'))
+for i in range(10):
+    print('%10.1f   %15.1f              %15.1f') % (pressures[i], Datapressure[i]/one_atm, Datatemp[i])
+
+print
+
+
+fig, ax1 = plt.subplots()
+
+color = 'tab:green'
+ax1.set_xlabel('Pressure (atm)')
+ax1.set_ylabel('Post Shock pressure [atm]', color=color)
+ax1.plot(pressures, Datapressure/one_atm, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  
+
+color = 'tab:blue'
+ax2.set_ylabel('Post Shock temperature [K]', color=color)  
+ax2.plot(pressures, Datatemp, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+ax2.set_ylim(2200, 2211)
+
+fig.tight_layout()  
+plt.show()
+
+
+print
+
+P2=100000
+q='H2:1 O2:1 N2:3.76';
+mech = 'h2air_highT.cti'
+
+T2 = 300
+temps = np.zeros(10)
+Data = np.zeros(10)
+Datapressure = np.zeros(10)
+Datatemp = np.zeros(10)
+
+for n in range(10):
+    temps[n] = T2
+    [cj_speed,R2] = CJspeed(P2, T2, q, mech, 0);
+    gas = PostShock_eq(cj_speed, P2, T2, q, mech)
+    Data[n] = cj_speed
+    Datapressure[n] = gas.P
+    Datatemp[n] = gas.T
+    T2+=100
+
+print('%15s    %15s' % ('Temperature [K]', 'CJ speed [m/s]'))
+for i in range(10):
+    print('%10.1f   %15.1f') % (temps[i], Data[i])    
+    
+    
+print 
+
+plt.plot(temps,Data)
+plt.ylabel('CJ speed [m/s]')
+plt.xlabel('Temperature [K]')
+plt.ylim(1600, 1611)
+plt.show()
+
+
+
+print 
+print
+print
+
+print('%15s    %15s    %15s' % ('Temperature [K]', 'Post Shock pressure [atm]', 'Post Shock temperature [K]'))
+for i in range(10):
+    print('%10.1f   %15.1f              %15.1f') % (temps[i], Datapressure[i]/one_atm, Datatemp[i])
+
+print 
+print
+
+fig, ax1 = plt.subplots()
+
+color = 'tab:green'
+ax1.set_xlabel('Temperature (K)')
+ax1.set_ylabel('Post Shock pressure [atm]', color=color)
+ax1.plot(temps, Datapressure/one_atm, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  
+
+color = 'tab:blue'
+ax2.set_ylabel('Post Shock temperature [K]', color=color) 
+ax2.plot(temps, Datatemp, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+ax2.set_ylim(2200, 2811)
+
+fig.tight_layout()  
+plt.show()
